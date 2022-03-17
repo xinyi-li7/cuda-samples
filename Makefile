@@ -42,8 +42,9 @@ FILTER_OUT :=
 PROJECTS := $(filter-out $(FILTER_OUT),$(PROJECTS))
 
 %.ph_build :
-	+@$(MAKE) -C $(dir $*) $(MAKECMDGOALS)
-
+#	+@$(MAKE) -C $(dir $*) $(MAKECMDGOALS)
+#	@echo $(+@$(MAKE) -C $(dir $*) $(MAKECMDGOALS))
+	@echo $(MAKECMDGOALS)
 %.ph_test :
 	+@$(MAKE) -C $(dir $*) testrun
 
