@@ -45,8 +45,6 @@ def read_report(report, data_list):
             line_set = line.split("      ")
         elif("FP Inst. count" in line):
             line_set = line.split("  ")
-        elif("Inst. count" in line):
-            line_set = line.split("  ")
         else:
             line_set = []
         #print(line_set)
@@ -54,8 +52,7 @@ def read_report(report, data_list):
             num = line_set[1].split("\n")[0]
             data_list.append(num)
     #print(report)
-    print(len(data_list))
-    #assert(len(data_list) == 9)
+    assert(len(data_list) == 11)
     return data_list
 
 def to_time_s(t):
@@ -76,9 +73,8 @@ def time_info(infos):
            
 
 
-df = pd.DataFrame(columns = ["program","fp64_NAN", "fp64_INF", "fp64_SUB","fp64_DIV0","fp32_NAN", "fp32_INF", "fp32_SUB","fp32_DIV0","kernel","FP instructions","check_time","ori_time","slowdown"])
+df = pd.DataFrame(columns = ["program","fp64_NAN", "fp64_INF", "fp64_SUB","fp64_DIV0","fp32_NAN", "fp32_INF", "fp32_SUB","fp32_DIV0","kernel","FP instructions"])
 #df = pd.DataFrame(columns = ["program","fp64_NAN", "fp64_INF", "fp64_SUB","fp64_DIV0","fp32_NAN", "fp32_INF", "fp32_SUB","fp32_DIV0","kernel","check_time"])
-Tail=[".perf",".soap.perf"]
 def create_table(dirs):
     for dir in dirs:
         print("process application: ", dir)
@@ -87,55 +83,44 @@ def create_table(dirs):
         # print(run_command([comd]))
             # for x in glob.glob("./*"):
             #     print(x)
-            for ta in Tail:
-                outfile = "stdout"+ta+".txt"
-                errfile = "stderr" + ta +".txt"
-                ori_errfile = "stderr_ori"+ta+".txt"
-                with open(outfile) as f:
-                    exist = 0
-                    lines_list = f.readlines()
-                    count = 0
-                    for line in lines_list:
-                        # print(line)
-                        count = count + 1
-                        if("FPChecker Report" in line):
-                            exist = 1
-                            e = read_report(lines_list[count+1:],[dir])
-                            break
-                # print("exist is: ", exist)
-                if(exist != 0):
-                    with open(errfile) as time_f:
-                        infos = time_f.readlines()
-                        t_s = time_info(infos)
-                        e.append(t_s)
-                    with open(ori_errfile) as timeori_f:
-                        infos_ori = timeori_f.readlines()
-                        t_s_ori = time_info(infos_ori)
-                        e.append(t_s_ori)   
-                    slowdown = t_s/t_s_ori
-                    e.append(slowdown)
-                    if(ta == ".soap.perf"):
-                        print("true")
-                        e.insert(4, "N/A")
-                        e.insert(8, "N/A")
-                        
-                    
-
-                    df.loc[len(df)] = e
-              #  else:
-               #     e = [dir,"N/A", "N/A", "N/A", "N/A","N/A","N/A","N/A","N/A","N/A","N/A","N/A","N/A","N/A"]
-                #    df.loc[len(df)] = e
-        e = [" ", " ", " ", " ", " "," "," "," "," "," "," "," "," ", " "]
-        df.loc[len(df)] = e
-        cd("..")
+            with open("stdout.perf.txt") as f:
+                exist = 0
+                lines_list = f.readlines()
+                count = 0
+                for line in lines_list:
+                    # print(line)
+                    count = count + 1
+                    if("FPChecker Report" in line):
+                        exist = 1
+                        e = read_report(lines_list[count+1:],[dir])
+                        break
+            # print("exist is: ", exist)
+            #print(e[-1])
+            if(exist != 0 and int(e[-1])>0):
+                #with open("stderr.perf.txt") as time_f:
+                #    infos = time_f.readlines()
+                #    t_s = time_info(infos)
+                #    e.append(t_s)
+                #with open("stderr_ori.perf.txt") as timeori_f:
+                #    infos_ori = timeori_f.readlines()
+                #    t_s_ori = time_info(infos_ori)
+                #    e.append(t_s_ori)   
+                #slowdown = t_s/t_s_ori
+                #e.append(slowdown)
+                print(e[-1])
+                df.loc[len(df)] = e
+            #else:
+            #    e = [dir, "N/A", "N/A", "N/A","N/A","N/A","N/A","N/A","N/A","N/A","N/A"]
+            #    df.loc[len(df)] = e
+            cd("..")
 
     print(df)
-    df.to_csv("parse_report.csv", index=False)
+    df.to_csv("exceptions_cuda-samples.csv", index=False)
                 #raise Exception("cannot go back to last directory")
 
 def entry(start_dir):
     dir_list = []
-    for f in glob.iglob(start_dir+'/**/stdout_ori.perf.txt',recursive=True):
+    for f in glob.iglob(start_dir+'/**/stdout.perf.txt',recursive=True):
         d = '/'.join(f.split('/')[:-1])
         dir_list.append(d)
     create_table(dir_list)    
